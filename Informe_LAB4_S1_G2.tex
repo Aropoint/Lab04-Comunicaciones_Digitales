@@ -1,0 +1,217 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc} % Cambiado utf8x a utf8
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amsthm, amssymb, amsfonts} % Unificado
+\usepackage{calc}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{gensymb}
+\usepackage{natbib}
+\usepackage{url}
+\graphicspath{{images/}}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\setmarginsrb{3 cm}{1.0 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
+\usepackage{pst-all}
+\usepackage{pstricks}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor} % Para los colores de listings
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{Laboratorio 4 - BER en señalización de Banda Base}
+\author{Aaron Pozas Oyarce \linebreak
+Diego Pérez Carrasco\\
+\textbf{Profesor:} Marcos Fantoval}
+\date{03/07/2025}
+
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+
+\pagestyle{fancy}
+\fancyhf{}
+\cfoot{\thepage}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{titlepage}
+    \centering
+    \vspace*{0.0cm}
+    \includegraphics[width=0.3\textwidth]{images/logo (1).jpg}\\
+    \textsc{\LARGE Universidad Diego Portales}\\[0.2cm]
+    \textsc{\large ESCUELA DE INFORMÁTICA \& TELECOMUNICACIONES}\\[2cm]
+    \textsc{\LARGE COMUNICACIONES DIGITALES}\\[1cm]
+    
+    \rule{\linewidth}{0.2mm} \\[0.4cm]
+    {\huge \bfseries Laboratorio 4 - BER en señalización de Banda Base}\\
+    \rule{\linewidth}{0.2mm} \\[1.5cm]
+    
+    {\Large \textbf{Autores:}}\\
+    Aaron Pozas Oyarce \\
+    Diego Pérez Carrasco \\[1cm]
+    
+    {\Large \textbf{Profesor:}}\\
+    Marcos Fantoval \\[1.5cm]
+    
+    {\large 03 de Julio de 2025}\\ [0.2cm]
+    \href{https://github.com/Aropoint/Lab04-Comunicaciones_Digitales}{Link repositorio} \\[1cm]
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introducción}
+\setlength{\parindent}{1cm}
+
+En el presente informe, se abordará la construcción y análisis de señales digitales moduladas, específicamente BPSK, QPSK y 8PSK, utilizando el entorno de desarrollo GNU Radio. Se explorarán los conceptos fundamentales de la modulación digital de GNU, más que nada bloques y funciones para posteriormente implementarlos en la construcción de las señales mencionadas. El objetivo principal es comprender cómo funcionan estas técnicas de modulación, su eficiencia espectral y su rendimiento en términos de tasa de error de bits (BER) en un canal ruidoso.
+
+\section{Metodología}
+Para el desarrollo de este laboratorio, se explicaron los conceptos específicos solicitados para la Actividad Previa, y posteriormente se implementaron las señales requeridas en la Actividad Principal, utilizando el entorno GNU Radio.  
+
+\subsection{Actividad Previa}
+
+\begin{itemize}
+    \item \textbf{Byte Pack y Byte Unpack en GNU Radio:} El módulo de Byte Pack se utiliza para agrupar una secuencia de bits empaquetándolos en bytes, mientras que el módulo de Byte Unpack realiza la operación inversa, descomponiendo los bytes en bits individuales. En GNU Radio, estos módulos son esenciales para manipular datos digitales, permitiendo la conversión entre diferentes formatos de datos.
+    
+    \item \textbf{Random Source en GNU Radio:} Este módulo genera una secuencia de bits aleatorios, simulando una fuente de datos de información. Es útil para pruebas y simulaciones, ya que permite crear señales de entrada sin necesidad de datos predefinidos.
+    
+    \item \textbf{Chunk To Symbols en GNU Radio:} Este módulo convierte un flujo de datos en bloques de símbolos, agrupando los bits en secuencias más largas que representan símbolos modulares. Es esencial para la modulación digital, donde los símbolos representan diferentes estados o valores en la señal transmitida.
+    
+    \item \textbf{Noise Source en GNU Radio:} Este módulo se encarga de generar ruido de manera aleatoria, simulando interferencias en la señal. Es fundamental para evaluar el rendimiento de los sistemas de comunicación, ya que permite probar la robustez de las señales frente a diferentes niveles de ruido.
+    
+    \item \textbf{Constellation Decoder en GNU Radio:} Este módulo se utiliza para decodificar señales moduladas, como QPSK o 16-QAM, convirtiendo los símbolos recibidos en bits. Es crucial para la demodulación de señales digitales, permitiendo recuperar la información original transmitida.
+    
+    \item \textbf{BER (Bit Error Rate) en GNU Radio:} Este módulo calcula la tasa de error de bits, comparando los bits transmitidos con los bits recibidos. Es una métrica clave para evaluar el rendimiento de un sistema de comunicación, ya que indica la cantidad de errores en la transmisión de datos.
+    
+    \item \textbf{QT GUI Number Sink en GNU Radio:} Este módulo se utiliza para visualizar datos numéricos en tiempo real, permitiendo monitorear el rendimiento del sistema de comunicación. Es útil para observar métricas como la tasa de error de bits (BER) o la potencia de la señal, facilitando el análisis y ajuste del sistema.
+    
+    \item \textbf{Función arity():} Esta función devuelve el número de símbolos en una constelación digital, lo que es esencial para entender la complejidad de la modulación utilizada. Por ejemplo, en una constelación BPSK, arity() devolvería 2, ya que hay dos símbolos posibles (0 y 1). Esta función es fundamental para calcular la tasa de bits y otros parámetros relacionados con la modulación.
+    
+    \item \textbf{Función points():} Esta función devuelve los puntos de la constelación, que son las coordenadas complejas de cada símbolo en el plano complejo. Por ejemplo, para una constelación QPSK, los puntos serían $ \{1+\mathrm{j}, 1-\mathrm{j}, -1+\mathrm{j}, -1-\mathrm{j}\} $. Esta función es esencial para visualizar y analizar la distribución de los símbolos en el espacio de modulación.
+
+    \item \textbf{Función base():} Esta función devuelve la base de una constelación en GNU, es decir, convierte una clase específica de modulación (como constellation\_bpsk, constellation\_qpsk o constellation\_8psk) en una instancia estándar del tipo digital.constellation. Es necesaria para el uso de métodos como los anteriores nombrados, por lo que a través de esta se facilita todo.
+
+    \item \textbf{Función bits\_per\_symbol():} Esta función devuelve el número de bits por símbolo de una constelación, es decir, cuántos bits se pueden representar con cada símbolo en la constelación. Por ejemplo, en una constelación BPSK, bits\_per\_symbol() devolvería 1, ya que cada símbolo representa un bit. Esta función es crucial para calcular la tasa de bits y entender la eficiencia de la modulación utilizada.
+\end{itemize}
+
+\subsection{Actividad Principal}
+\begin{itemize}
+    \item \textbf{Construcción de señales BPSK, QPSK y 8PSK:} Para la construcción de estas señales, se crearon 3 archivos para cada uno en GNU Radio, siendo practicamente iguales en su construcción, salvo un bloque en específicoen la señal BPSK  (unpack k bits, que no se utilizó en BPSK). Primero se configuró un bloque Random Source, dándole como maximum la función \textbf(const.arity()), siendo const la constelación específica a construir. Posteriormente, se conectó a un bloque de Chunk to Symbols, pasandole como argumento en su symbol table la función \textbf{const.points()}. Luego se utilizó un bloque de Noise Source, que genera un ruido blanco Gaussiano, configurando su amplitud a través de la siguiente ecuación: $1.0/(math.sqrt (2.0 * const.bits\_per\_symbol()  * 10 ** (EbN0 / 10.0)))$. Después, ambos bloques anteriores (Noise Source y Chunk to Symbols) se conectaron a un ADD para posteriormente imprimier o muestrear la constelación con un QT GUI Constellation Sink. Finalmente, se utilizó un Throttle con un sample de 100k desde el Random Source, para luego conectarlo a un Unpack K Bits (para QPSK y 8PSK), que luego iría conectado a una de las entradas del BER. En la otra entrada de este, iría asociado un bloque de Constellation Decoder, trayendo la información del ADD anterior, pasandole además como argumento la función \textbf{const.base()}. Finalmente, desde el BER se conectó a un QT GUI Number Sink, que permite visualizar la tasa de error de bits (BER) en tiempo real. (Ver construcciones: \ref{fig:BPSK}, \ref{fig:QPSK} y \ref{fig:8PSK}).
+
+\end{itemize}
+
+\section{Resultados y Análisis}
+
+\subsection{Actividad Principal}
+
+\begin{itemize}
+    \item \textbf{Señal BPSK:} La señal BPSK presenta dos estados posibles, separados por un ángulo de 180 grados, los cuales representan los bits 0 y 1. En la figura \ref{fig:BPSK_RES} se observa precisamente estos dos estados de manera simétrica. Ambos se encuentran en una cuadratura 0 y en los puntos -1 y 1 del eje real, lo que indica que la señal es una modulación de fase binaria. La dispersión  los puntos alrededor se debe al ruido presente en el canal, pero a pesar de esto, la amplia separación entre los símmbolos permite una buena resistencia frente al ruido mismo, lo que se ve reflejado en la tasa de error de bits (BER) obtenida, la cual es practicamente nula, lo que confirma su robustez, pero también su baja eficiencia espectral, ya que solo se transmite un bit por símbolo.
+    
+    \item \textbf{Señal QPSK:} La señal QPSK se caracteriza por presentar 4 fases distintas, cada una separada por 90 grados una de la otra, representando combinaciones de 2 bits por símbolo (00, 01, 10, 11). En la figura \ref{fig:QPSK_RES} se puede observar que los puntos de la constelación están distribuidos en un cuadrado, con una separación angular de 90 grados entre ellos. Esta disposición permite una mayor eficiencia espectral en comparación con BPSK, ya que se transmiten 2 bits por símbolo. La tasa de error de bits (BER) es ligeramente superior a la de BPSK debido a la proximidad de los símbolos, pero sigue siendo aceptable para muchas aplicaciones.
+    
+    \item \textbf{Señal 8PSK:} Finalmente, la señal 8PSK presenta 8 fases distintas separadas de manera equidistante (45°) en el plano complejo, representando combinaciones de 3 bits por símbolo. En la figura \ref{fig:8PSK_RES} se observa que los puntos están distribuidos en un una especie de círculo, lo que indica una modulación de fase con 8 símbolos distintos. Esta disposición permite una mayor eficiencia espectral, ya que se transmiten 3 bits por símbolo. Sin embargo, la tasa de error de bits (BER) es mayor en comparación con BPSK y QPSK debido a la proximidad de los símbolos, lo que hace que sea más susceptible al ruido y a la interferencia. A pesar de esto, 8PSK sigue siendo una opción popular en aplicaciones donde se requiere una alta eficiencia espectral.
+    
+\end{itemize}
+
+Cabe recalcar, que si se ajusta el parámetro Eb/N0 en el bloque de range, se puede observar como los puntos se repliegan (en el caso de ser un Eb/N0 bajo) o se compactan haciendolos más definidos (en el caso de ser un Eb/N0 alto). Esto se debe a que este parámetro modifica la amplitud del ruido Gaussiano blanco aditivo (AWGN) que se añade a la señal, afectando la calidad de la recepción y, por ende, la tasa de error de bits (BER). A medida que se aumenta el Eb/N0, la señal se vuelve más resistente al ruido, lo que resulta en una menor tasa de error de bits y una mejor definición de los puntos en la constelación, si se disminuye, la señal se vuelve más susceptible al ruido, lo que resulta en una mayor tasa de error de bits y una mayor dispersión de los puntos en la constelación.
+
+\section{Conclusión}
+
+En este laboratorio, se exploraron diferentes técnicas de modulación digital, específicamente BPSK, QPSK y 8PSK, y se analizó su rendimiento en términos de tasa de error de bits (BER) utilizando GNU Radio. Se observó que BPSK, aunque es la más simple y robusta frente al ruido, tiene una baja eficiencia espectral al transmitir solo un bit por símbolo. Por otro lado, QPSK y 8PSK ofrecen una mayor eficiencia espectral al transmitir 2 y 3 bits por símbolo respectivamente, pero a costa de una mayor susceptibilidad al ruido y una tasa de error de bits más alta. Estos resultados destacan la importancia de elegir la técnica de modulación adecuada según las necesidades específicas de la aplicación, considerando siempre el equilibrio entre eficiencia espectral y robustez frente al ruido.
+
+\newpage
+\section{Referencias}
+
+\begin{itemize}
+    \item W. Tomasi, \textit{Sistemas de comunicación electronicas}. México: Pearson Educación, 2003.
+    \item L. Couch, \textit{Sistemas de comunicacioon digitales y analogicos.}. Mexico: Pearson/Prentice Hall, 2008
+\end{itemize}
+
+\newpage
+\section{Anexos}
+
+\subsection*{Construcción BPSK en GNU Radio:}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\textwidth]{images/GNU_BPSK.png}
+    \caption{Construcción de la señal BPSK}
+    \label{fig:BPSK}
+\end{figure}
+
+\newpage
+\subsection*{Construcción QPSK y 8PSK en GNU Radio:}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\textwidth]{images/GNU_QPSK.png}
+    \caption{Construcción de la señal QPSK}
+    \label{fig:QPSK}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\textwidth]{images/GNU_8PSK.png}
+    \caption{Construcción de la señal 8PSK}
+    \label{fig:8PSK}
+\end{figure}
+
+
+\newpage
+\subsection*{Gráficos de señales:}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\textwidth]{images/BPSK_RES.png}
+    \caption{Gráfico de la señal BPSK con BER}
+    \label{fig:BPSK_RES}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\textwidth]{images/QPSK_RES.png}
+    \caption{Gráfico de la señal QPSK con BER}
+    \label{fig:QPSK_RES}
+\end{figure}
+\newpage
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\textwidth]{images/8PSK_RES.png}
+    \caption{Gráfico de la señal 8PSK con BER}
+    \label{fig:8PSK_RES}
+\end{figure}
+
+\end{document}
